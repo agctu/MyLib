@@ -1,0 +1,14 @@
+# version 460 core
+
+layout (location = 0) in vec2 pos;
+
+uniform mat4 project;
+uniform mat4 view;
+uniform mat4 model;
+
+out vec2 coord;
+void main()
+{
+	gl_Position = project * view * model * vec4(pos.x,pos.y, 0.f, 1.f);
+	coord = pos * 0.4999 + 0.5;
+}

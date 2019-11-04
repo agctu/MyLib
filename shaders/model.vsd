@@ -1,0 +1,17 @@
+#version 460 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aCoord;
+uniform mat4 transf;
+out VS2FS{
+	vec3 Normal;
+	vec2 Coord;
+}vs_out;
+
+void main()
+{
+	gl_Position = transf * vec4(aPos, 1.0);
+	vs_out.Normal = aNormal;
+	vs_out.Coord = aCoord;
+
+}

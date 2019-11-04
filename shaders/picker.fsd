@@ -1,0 +1,10 @@
+#version 460 core
+
+unifrom float id;
+
+out vec4 fragcolor;
+
+void main()
+{
+    fragcolor = vec4(id,0.f,0.f,1.f);
+}
