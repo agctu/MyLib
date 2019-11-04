@@ -163,60 +163,7 @@ namespace mine {
 			deskres = nullptr;
 			if (hr != S_OK)
 				return false;
-			//if (info.TotalMetadataBufferSize) {
-			//	if (info.TotalMetadataBufferSize > metadatasize) {
-			//		if (metadatabuf) {
-			//			delete[] metadatabuf;
-			//			metadatabuf = nullptr;
-			//		}
-			//		metadatabuf = new (std::nothrow) BYTE[info.TotalMetadataBufferSize];
-			//		if (!metadatabuf) {
-			//			metadatasize = 0;
-			//			data.MoveCount = 0;
-			//			data.DirtyCount = 0;
-			//			return false;
-			//		}
-			//		metadatasize = info.TotalMetadataBufferSize;
-			//	}
-
-			//	UINT bufsize = info.TotalMetadataBufferSize;
-
-			//	hr = deskdupl->GetFrameMoveRects(bufsize, (DXGI_OUTDUPL_MOVE_RECT*)(metadatabuf), &bufsize);
-
-			//	if (hr != S_OK) {
-			//		data.MoveCount = 0;
-			//		data.DirtyCount = 0;
-			//		return false;
-			//	}
-			//	data.MoveCount = bufsize / sizeof(DXGI_OUTDUPL_MOVE_RECT);
-			//	BYTE *dirtyrects = metadatabuf + bufsize;
-			//	bufsize = info.TotalMetadataBufferSize - bufsize;
-
-			//	hr = deskdupl->GetFrameDirtyRects(bufsize, (RECT*)dirtyrects,&bufsize);
-			//	if (hr != S_OK) {
-			//		data.MoveCount = 0;
-			//		data.DirtyCount = 0;
-			//		return false;
-			//	}
-			//
-			//	data.DirtyCount = bufsize / sizeof(RECT);
-
-			//	/*{
-			//		printf("data start:\n");
-			//		RECT *r = (RECT*)dirtyrects;
-			//		for (int i = 0; i < data.DirtyCount; i++) {
-			//			RECT rect = *(r + i);
-			//			printf("top:%d,bottom:%d,left:%d,right:%d\n", rect.top, rect.bottom, rect.left, rect.right);
-			//		}
-			//	}*/
-
-			//	data.MetaData = metadatabuf;
-
-			//}
-			//data.Frame = acquireddeskimage;
-			//data.FrameInfo = info;
-
-
+			
 			//below get the real pixels from all of all that
 			DXGI_MAPPED_RECT mappedrect;
 			hr = deskdupl->MapDesktopSurface(&mappedrect);
@@ -234,15 +181,8 @@ namespace mine {
 				return false;
 			BYTE *rdata = (BYTE*)map.pData;
 			
-			
-			for (int i = 0; i < 5; i++) {
-				cout << (int)rdata[i * 4]<<"  " << (int)rdata[i * 4 + 1]<<"  " << (int)rdata[i * 4 + 2]<<"  " <<(int) rdata[i * 4 + 3] << endl;
-			}
 			BYTE* out = (BYTE*)receiver;
-			/*for(int i=0;i<getwidth()*getheight();i++)
-				for (int j = 0; j < 3; j++) {
-					out[i * 3 + j] = rdata[i * 4 + j];
-				}*/
+			
 			
 			float xscale = (float)getwidth() / width;
 			float yscale = (float)getheight() / height;
