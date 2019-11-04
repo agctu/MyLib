@@ -134,12 +134,12 @@ namespace mine {
 
 			return true;
 		}
-		bool getframe(void* receiver,bool& timeout)
+		bool getframe(void* receiver,bool& timeout,int width,int height)
 		{
-			/*if (width > getwidth())
+			if (width > getwidth())
 				return false;
 			if (height > getheight())
-				return false;*/
+				return false;
 			FRAME_DATA data;
 			HRESULT hr;
 			IDXGIResource *deskres = nullptr;
@@ -235,25 +235,25 @@ namespace mine {
 			BYTE *rdata = (BYTE*)map.pData;
 			
 			
-			/*for (int i = 0; i < 5; i++) {
+			for (int i = 0; i < 5; i++) {
 				cout << (int)rdata[i * 4]<<"  " << (int)rdata[i * 4 + 1]<<"  " << (int)rdata[i * 4 + 2]<<"  " <<(int) rdata[i * 4 + 3] << endl;
-			}*/
+			}
 			BYTE* out = (BYTE*)receiver;
-			for(int i=0;i<getwidth()*getheight();i++)
+			/*for(int i=0;i<getwidth()*getheight();i++)
 				for (int j = 0; j < 3; j++) {
 					out[i * 3 + j] = rdata[i * 4 + j];
-				}
+				}*/
 			
-			/*float xscale = (float)getwidth() / width;
+			float xscale = (float)getwidth() / width;
 			float yscale = (float)getheight() / height;
 			for(int x=0;x<width;x++)
 				for (int y = 0; y < height; y++) {
 					for (int k = 0; k < 3; k++) {
 						out[3 * (x + width * y) + k] = rdata[4 * (int(xscale*x) + int(yscale * y)*getwidth()) + k];
 					}
-				}*/
+				}
 
-			//d3dcontext->Unmap(stagingtex, 0);
+			d3dcontext->Unmap(stagingtex, 0);
 			done();
 			return true;
 		}
