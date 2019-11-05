@@ -14,7 +14,7 @@ namespace mine {
 		int wsaerror = WSAGetLastError();
 		char error[256];
 		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, wsaerror, NULL, error, sizeof(error), NULL);
-		mlog << label << "errorcode" << wsaerror <<endl<< lend << label << "error text" << lend << lend;
+		mlog << label << "errorcode" << wsaerror<< lend << label << "error text" <<error<< lend << lend;
 		
 	}
 	class msocket {
@@ -112,7 +112,17 @@ namespace mine {
 		}
 		int send(void* data, int len)
 		{
-			return ::send(sock, (const char*)data, len, 0);
+			mlog << label << "SEND";
+			mlog << label << "NEEDTOSEND" << len << lend;
+			int retcode=::send(sock, (const char*)data, len, 0);
+			if (retcode > 0)
+				mlog << label << "SEND " << retcode << " b" << lend;
+			else if (retcode < 0)
+				showerror();
+			else
+				mlog << "UNKNOW CONDITION,YOU REALLY NEED TO LOOK UP THE DOCUMENTS";
+			mlog << lend;
+			return retcode;
 		}
 		string recv(int len=0)
 		{
