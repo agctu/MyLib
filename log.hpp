@@ -96,13 +96,13 @@ public:
 			o << "</" << l << ">";
 			*this << endl;
 		}
-		else{
+		else {
 			o << "<" << l << ">";
 			++indenttime;
 			*this << endl;
 			labelstack.push_back(l);
 		}
-		
+
 	}
 	void close()
 	{
@@ -126,6 +126,11 @@ private:
 	}
 	
 };
+string logbuf = "";
+#define exlog(level) (logbuf="",level<1?logbuf\
+:(logbuf=logbuf+"in FUNCTION "+__func__+"\n",level<2?logbuf\
+:(logbuf=string("in FILE: ")+__FILE__+" in LINE "+std::to_string(__LINE__)+" "+logbuf,level<3?logbuf\
+:(logbuf=std::string(__DATE__)+" at "+__TIME__+" "+logbuf,logbuf))))
 //string logger::indent = "\t";
 //int logger::indenttime = 0;
 //vector<string> logger::labelstack;
