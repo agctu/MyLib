@@ -1,3 +1,4 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <string>
@@ -8,14 +9,93 @@
 using namespace std;
 logger mlog(cout);
 namespace mine {
+	string geterror()
+	{
+		int wsaerror = WSAGetLastError();
+		char error[256];
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, wsaerror, NULL, error, sizeof(error), NULL);
+		return error;
+	}
 	void showerror()
 	{
 		mlog << label << "wsaerror";
 		int wsaerror = WSAGetLastError();
-		char error[256];
-		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, wsaerror, NULL, error, sizeof(error), NULL);
-		mlog << label << "errorcode" << wsaerror<< lend << label << "error text" <<error<< lend << lend;
+		mlog << label << "errorcode" << wsaerror<< lend << label << "error text" <<geterror()<< lend << lend;
 		
+	}
+	string gethostname()
+	{
+		char buf[512];
+		int err=::gethostname(buf, sizeof(buf));
+		if (err == -1) {
+			showerror();
+			return string();
+		}
+		return string(buf);
+
+	}
+
+	struct host_info {
+		string name;
+		vector<string> aliases;
+		int sock_type;
+		int length;
+		vector<string> addresses;
+		host_info() {}
+		host_info(HOSTENT *hif) :nativeinfo(*hif)
+		{
+			name = hif->h_name;
+			sock_type = hif->h_addrtype;
+			length = hif->h_length;
+			char buf[512];
+			char *cur;
+			for (int i = 0; (cur = nativeinfo.h_aliases[i]) != NULL; i++) {
+				inet_ntop(sock_type, cur, buf, sizeof(buf));
+				aliases.push_back(buf);
+			}
+
+			for (int i = 0; (cur = nativeinfo.h_addr_list[i]) != NULL; i++) {
+				inet_ntop(sock_type, cur, buf, sizeof(buf));
+				addresses.push_back(buf);
+			}
+		}
+	private:
+		HOSTENT nativeinfo;
+
+	};
+	host_info gethostbyname(string hostname)
+	{
+		HOSTENT *hif=::gethostbyname(hostname.c_str());
+		if (hif == NULL) {
+			showerror();
+			return host_info();
+		}
+		return host_info(hif);
+	}
+	host_info gethostbyaddr(string addr,int type)
+	{
+		//always get a 11004 error,never get the info from the internet,localhost info can be get
+		int addrlen;
+		void *p=NULL;
+		HOSTENT *hif = NULL;
+		if (type == AF_INET) {
+			addrlen = 4;
+			in_addr addrinfo;
+			inet_pton(type, addr.c_str(), &addrinfo);
+			p = &addrinfo;
+		}
+		else if (type == AF_INET6) {
+			addrlen = 16;
+			in6_addr addrinfo;
+			inet_pton(type, addr.c_str(), &addrinfo);
+			p = &addrinfo;
+		}
+		hif = ::gethostbyaddr((const char*)p,addrlen,  type);
+		if (hif == NULL) {
+			showerror();
+			return host_info();
+		}
+		return host_info(hif);
 	}
 	class msocket {
 		static WSADATA wsadata;
@@ -67,10 +147,7 @@ namespace mine {
 			addrin.sin_port = htons(sock_port);
 			if (::bind(sock, (SOCKADDR*)&addrin, sizeof(addrin)) != 0) {
 				int wsaerror = WSAGetLastError();
-				char error[256];
-				FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
-					wsaerror, NULL, error, sizeof(error), NULL);
-				log = string() + "ERROR:[" + to_string(wsaerror) + "] " + error;
+				log = string() + "ERROR:[" + to_string(wsaerror) + "] " + geterror();
 				return false;
 			}
 			log = "Successfully bind";
@@ -117,8 +194,10 @@ namespace mine {
 			int retcode=::send(sock, (const char*)data, len, 0);
 			if (retcode > 0)
 				mlog << label << "SEND " << retcode << " b" << lend;
-			else if (retcode < 0)
+			else if (retcode < 0) {
+				mlog << label << "ERROR: " << retcode << lend;
 				showerror();
+			}
 			else
 				mlog << "UNKNOW CONDITION,YOU REALLY NEED TO LOOK UP THE DOCUMENTS";
 			mlog << lend;
@@ -136,9 +215,12 @@ namespace mine {
 			state=::recv(sock, data, len, 0);
 			mlog << label << "RECV";
 			if (state > 0)
-				mlog << label << "length" << state <<endl<< lend;
-			else if (len < 0)
-				mlog << label << "error" << state << endl<<lend;
+				mlog << label << "length" << state << lend;
+			else if (len < 0) {
+				mlog << label << "error" << state << lend;
+				showerror();
+				return string();
+			}
 			else
 				mlog << "completely receiving file" << endl;
 			string rets = data;
@@ -154,16 +236,16 @@ namespace mine {
 		{
 			dcrs();
 		}
-	private:
 		static bool loadwsa()
 		{
-			//WSAStartup 调用成功时返回0
+			//WSAStartup return 0 when successfully called
 			return WSAStartup(0x202, &wsadata) == 0;
 		}
 		static void unloadwsa()
 		{
 			WSACleanup();
 		}
+	private:
 		static void add()
 		{
 			if (count == 0)
@@ -176,6 +258,7 @@ namespace mine {
 			if (count == 0)
 				unloadwsa();
 		}
+
 	};
 	WSADATA msocket::wsadata;
 	int msocket::count = 0;
