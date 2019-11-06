@@ -54,8 +54,9 @@ namespace mine {
 		virtual input_base* clone()const = 0;
 		
 	};
-	const int input_base::scwidth = GetSystemMetrics(SM_CXSCREEN);
-	const int input_base::scheight = GetSystemMetrics(SM_CYSCREEN);
+	//getSystemMetrics doesn't get the length of pixels
+	const int input_base::scwidth = 1920;// GetSystemMetrics(SM_CXSCREEN);
+	const int input_base::scheight = 1080;// GetSystemMetrics(SM_CYSCREEN);
 	class pinput {
 		input_base *p;
 		friend inputchain;
@@ -221,7 +222,9 @@ namespace mine {
 		void commit()
 		{
 			time_t tstamp = ::time(0);
-			tm *t = localtime(&tstamp);
+			tm *t;
+			errno_t err;
+			err = localtime_s(t,&tstamp);
 			this->second = ((h - t->tm_hour) * 60 + (m - t->tm_min)) * 60 + (s - t->tm_sec);
 			if (this->second < 0)
 				second += 24 * 60 * 60;
@@ -231,7 +234,7 @@ namespace mine {
 			while (true) {
 
 				tstamp = ::time(0);
-				t = localtime(&tstamp);
+				err = localtime_s(t,&tstamp);
 				second = ((h - t->tm_hour) * 60 + (m - t->tm_min)) * 60 + (s - t->tm_sec);
 				if (second > 10)
 					wait(second - 1).commit();
@@ -269,6 +272,22 @@ namespace mine {
 		{
 			SendInput(1, &inputs[0], sizeof(INPUT));
 			SendInput(1,&inputs[1],sizeof(INPUT));
+		}
+	};
+	class wheel :public mi_base {
+	public:
+		wheel(int n) :mi_base()
+		{
+			inputs[0].mi.dwFlags = MOUSEEVENTF_WHEEL;
+			inputs[0].mi.mouseData = WHEEL_DELTA * n;
+		}
+		wheel *clone()const
+		{
+			return new wheel(*this);
+		}
+		void commit()
+		{
+			SendInput(1, &inputs[0], sizeof(INPUT));
 		}
 	};
 	class rclick :public mi_base {
