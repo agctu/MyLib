@@ -209,6 +209,7 @@ namespace mine {
 				len = 1024;
 			
 			char *data = new char[len]();
+			memset(data, 0, len);
 			/*if (::recv(sock, data,len, 0))
 				return string();*/
 			int state;
@@ -227,6 +228,28 @@ namespace mine {
 			mlog << lend;
 			delete[] data;
 			return string(rets);
+		}
+		int recv(char *data,int len = 0)
+		{
+			if (len == 0)
+				len = 1024;
+
+			memset(data, 0, len + 1);
+			int state;
+			state = ::recv(sock, data, len, 0);
+			mlog << label << "RECV";
+			if (state > 0)
+				mlog << label << "length" << state << lend;
+			else if (len < 0) {
+				mlog << label << "error" << state << lend;
+				showerror();
+				return state;
+			}
+			else
+				mlog << "completely receiving file" << endl;
+			string rets = data;
+			mlog << lend;
+			return state;
 		}
 		void close()
 		{
