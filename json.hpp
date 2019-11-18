@@ -23,7 +23,7 @@ typedef vector<json> json_array_data;
 typedef map<string,json> json_object_data;
 class json {
 	json_type type_flag;
-	//here use pointer to avoid memory leaking 
+	//here use pointer to avoid memory leaking
 	union json_data{
 		string *s;
 		json_array_data *a;
@@ -43,6 +43,17 @@ public:
 	{
 		type_flag = JSON_ARRAY;
 		data.a = new json_array_data(a);
+	}
+
+	template<class T>json(vector<T> a)
+	{
+		type_flag = JSON_ARRAY;
+		data.a = new json_array_data(a.begin(),a.end());
+	}
+	template<class T>json(T *a,size_t len)
+	{
+		type_flag = JSON_ARRAY;
+		data.a = new json_array_data(a, a + len);
 	}
 	json(bool b)
 	{
@@ -64,11 +75,15 @@ public:
 		type_flag = JSON_OBJECT;
 		data.o = new json_object_data(o);
 	}
+	template<class T>json(map<string, T> o)
+	{
+		type_flag = JSON_OBJECT;
+		data.o = new json_object_data(o.begin(), o.end());
+	}
 	json(string s)
 	{
 		type_flag = JSON_STRING;
 		data.s = new string(s);
-		
 	}
 	json(const char* s)
 	{
