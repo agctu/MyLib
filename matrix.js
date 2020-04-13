@@ -157,7 +157,19 @@ Matrix.prototype={
                 }
             }
         }
-        
+        else if(val.constructor==Vector){
+            //this if shoud be abondoned in the future.
+            if(val.length!=4){
+                throw "The length of the Vector should be 4.";
+            }
+            let resultv = new Vector([0,0,0,0]);
+            for(let i=0;i<val.length;++i){
+                for(let j=0;j<4;++j){
+                    resultv.data[i]+=val.data[j]*this.at(i,j);
+                }
+            }
+            return resultv;
+        }
         return result;
     },
     transpose : function(){
@@ -237,16 +249,13 @@ Matrix.rotate = function(rad,nx,ny,nz){
     ]);
     return result;
 }
-a=new Matrix(1);
-console.log(a.toString());
-console.log(a);
-b=a.mul(2);
-console.log(b.toString());
-var c=a.mul(b);
-console.log(c.toString());
-a=new Vector([1,2,0]);
-b=new Vector([2,5,0]);
-console.log(a.dot(b));
-console.log(a.cross(b).toString());
-console.log(a.norm);
-console.log(b.norm);
+Matrix.ortho=function(minx,maxx,miny,maxy,minz,maxz){
+    var result = new Matrix([
+        2/(maxx-minx),0.0,0.0,-(2*minx/(maxx-minx)+1),
+        0.0,2/(maxy-miny),0.0,-(2*miny/(maxy-miny)+1),
+        0.0,0.0,2/(minz-maxz),-(2*maxz/(minz-maxz)+1),
+        0.0,0.0,0.0,1.0
+    ]);
+    return result;
+}
+
