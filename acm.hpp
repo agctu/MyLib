@@ -18,6 +18,15 @@ namespace acm{
         while(t>='0'&&t<='9')ans*=10,ans+=t-'0',t=getchar();
         return ans*sign;
     }
+    inline int qpow(int a,int p,int mod)
+    {
+        long long ans=1,acc=a;
+        while(p){
+            if(p&1)ans=ans*acc%mod;
+            p>>=1;acc=acc*acc%mod;
+        }
+        return ans;
+    }
     //Number Theory
     template<class T>
     T gcd(T a,T b)
@@ -36,5 +45,42 @@ namespace acm{
         y=y-a/b*x;
         return ret;
     }
+    //N max index 
+    template<int N,int MOD> class MulInv{
+        int *inv;
+        public:
+        MulInv()
+        {
+            inv=new int[N+1];
+            inv[1]=1;
+            for(int i=2;i<=N;++i)inv[i]=(long long)(MOD-MOD/i)*inv[MOD%i]%MOD;
+        }
+        template<class ARRAY>
+        MulInv(ARRAY& a)
+        {
+            inv=new int[N+1];
+            int *s=new int[N+1],*sv=new int[N+1];
+            s[0]=1;
+            for(int i=1;i<=N;++i)s[i]=(long long)s[i-1]*a[i]%MOD;
+            sv[N]=qpow(s[N],MOD-2,MOD);
+            for(int i=N-1;i>=1;--i)sv[i]=(long long)sv[i+1]*a[i+1]%MOD;
+            for(int i=1;i<=N;++i)inv[i]=(long long)sv[i]*s[i-1]%MOD;
+            delete[] s;delete[] sv;
+        }
+        long long get(int n)const
+        {
+            return inv[n];
+        }
+        long long operator[](int n)const
+        {
+            return get(n);
+        }
+        ~MulInv()
+        {
+            delete[] inv;
+        }
+        private:
+        MulInv(const MulInv&);
+    };
 }
 #endif
