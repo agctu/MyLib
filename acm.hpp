@@ -27,6 +27,33 @@ namespace acm{
         }
         return ans;
     }
+    template<class dt,class st=int>//dt has default constructor and has the method merge
+    class SegTree{
+        struct Node{
+            st l,r,m,pl,pr;
+            dt v;
+            Node(st l,st r):l(l),r(r),v(),m((l+r)/2){}
+        };
+        vector<Node> dat;
+    public:
+        template<class iterable>
+        SegTree(const iterable& src,st s,st e)//exclusive
+        {
+            build(&iterable[s],&iterable[e]);
+        }
+        dt sum(st s,st e)
+        {
+
+        }
+        
+    private:
+        template<class iter>
+        void build(iter l,iter r,st cur=0)
+        {
+            cur=dat.size();
+            dat.emplace_back()
+        }
+    };
     //Number Theory
     template<class T>
     T gcd(T a,T b)
