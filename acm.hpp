@@ -2,6 +2,11 @@
 #define ACM_HPP
 #include <cstdio>
 namespace acm{
+    //just return what the default value using the default constructor of the type T
+    template<class T> class Nul{
+        template<class r>
+        inline T operator[](r){return T();}
+    };
     template<class T>
     inline void swap(T& a,T& b)
     {
