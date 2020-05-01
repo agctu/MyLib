@@ -1,5 +1,6 @@
 #ifndef ACM_HPP
 #define ACM_HPP
+#include <cstdio>
 namespace acm{
     template<class T>
     inline void swap(T& a,T& b)
@@ -27,31 +28,82 @@ namespace acm{
         }
         return ans;
     }
-    template<class dt,class st=int>//dt has default constructor and has the method merge
+    //dt has default constructor and has the method merge
+    //ot has default constructor and it can be add to it self as well as to dt
+    //st is the size type int , long or long long.
+    template<class dt,class ot,class st=int>
     class SegTree{
         struct Node{
-            st l,r,m,pl,pr;
+            st l,r,m,lp,rp;
             dt v;
-            Node(st l,st r):l(l),r(r),v(),m((l+r)/2){}
+            ot lt;
+            Node(st l,st r):lp(-1),rp(-1),l(l),r(r),v(),lt(),m((l+r)/2){}
+            Node(){}
         };
         vector<Node> dat;
     public:
         template<class iterable>
         SegTree(const iterable& src,st s,st e)//exclusive
         {
-            build(&iterable[s],&iterable[e]);
+            dat.resize((e-s)*2-1);//avoid the address of data in vector changes which will cause the loss of the reference
+            st i=0;
+            build(s,e,src,i);
         }
-        dt sum(st s,st e)
+        void update(st l,st r,ot v,st cur=0)
         {
-
+            Node& cs=dat[cur];
+            if(l<=cs.l&&cs.r<=r){
+                cs.v=cs.v+v*(cs.r-cs.l);
+                cs.lt=cs.lt+v;
+            }
+            else{
+                pushdown(cur);
+                if(l<cs.m) update(l,r,v,cs.lp);
+                if(r>cs.m) update(l,r,v,cs.rp);
+                cs.v=dat[cs.lp].v+dat[cs.rp].v;
+            }
+        }
+        dt sum(st l,st r,st cur=0)//exclusive for r
+        {
+            Node& cs=dat[cur];
+            if(l<=cs.l&&cs.r<=r){
+                return cs.v;
+            }
+            else{
+                pushdown(cur);
+                return (l<cs.m?sum(l,r,cs.lp):dt())+(r>cs.m?sum(l,r,cs.rp):dt());
+            }
         }
         
     private:
-        template<class iter>
-        void build(iter l,iter r,st cur=0)
+        template<class iterable>
+        void build(st l,st r,const iterable& src,st& cur)/* (st l,st r,const iterable& src,st& cur) */
         {
-            cur=dat.size();
-            dat.emplace_back()
+            Node& cs=dat[cur++];
+            cs=Node(l,r);
+            if(r-l>1){
+                cs.lp=cur;
+                build(cs.l,cs.m,src,cur);
+                cs.rp=cur;
+                build(cs.m,cs.r,src,cur);
+                cs.v=dat[cs.lp].v+dat[cs.rp].v;
+            }
+            else{
+                cs.v=src[l];
+            }
+        }
+        void pushdown(st cur)
+        {
+            Node& cs=dat[cur];
+            if(cs.lt==ot()||cs.r-cs.l<=1)return;
+            else{
+                Node& ls=dat[cs.lp],& rs=dat[cs.rp];
+                ls.v=ls.v+cs.lt*(ls.r-ls.l);
+                ls.lt=ls.lt+cs.lt;
+                rs.v=rs.v+cs.lt*(rs.r-rs.l);
+                rs.lt=rs.lt+cs.lt;
+                cs.lt=ot();
+            }
         }
     };
     //Number Theory
