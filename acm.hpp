@@ -111,6 +111,41 @@ namespace acm{
             }
         }
     };
+    //Tree Problem
+    template<int N>
+    struct LBase{
+        long long base[N+1];
+        LBase()
+        {
+            fill(base,base+N+1,0);
+        }
+        LBase& operator+=(long long x)
+        {
+            for(int i=N;i>=0;--i){
+                if((x&(1ll<<i))==0)continue;
+                if(base[i]==0){base[i]=x;break;}
+                else{
+                    x=x^base[i];
+                }
+            }
+            return *this;
+        }
+        LBase& operator+=(const LBase& x)
+        {
+            for(int i=0;i<N+1;++i){
+                this->operator+=(x.base[i]);
+            }
+            return *this;
+        }
+        long long max()
+        {
+            long long ret=0;
+            for(int i=N;i>=0;--i){
+                if(ret^base[i]>ret)ret=ret^base[i];
+            }
+            return ret;
+        }
+    };
     //Number Theory
     template<class T>
     T gcd(T a,T b)
