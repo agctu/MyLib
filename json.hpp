@@ -160,6 +160,7 @@ public:
 			throw runtime_error("error_type");
 			break;
 		}
+		return *this;
 	}
 	~json()
 	{
@@ -220,6 +221,16 @@ public:
 			return data.a->size();
 		else if (type_flag == JSON_OBJECT)
 			return data.o->size();
+	}
+	void push_back(const json& x)
+	{
+		assert(type_flag == JSON_ARRAY);
+		data.a->push_back(x);
+	}
+	void pop_back()
+	{
+		assert(type_flag == JSON_ARRAY);
+		data.a->pop_back();
 	}
 	//convertor and type
 	string type()
