@@ -113,6 +113,82 @@ namespace icpc{
         }
     };
     //Tree Problem
+    //self implemented set
+    template<class T>
+    struct st{
+        struct node{ node *l=0,*r=0,*f=0; T v=T(); };
+        node * head;
+        st():head(nullptr){}
+        inline void insert(T v){insert(v,head);}
+        void insert(T v,node *&rt,node *f=0)
+        {
+            if(rt==nullptr){
+                rt=new node();
+                rt->v=v;
+                rt->f=f;
+            }
+            else if(v<rt->v){
+                insert(v,rt->l,rt);
+            }
+            else if(v==rt->v){
+                return;
+            }
+            else{
+                insert(v,rt->r,rt);
+            }
+        }
+        inline node *find(T v){return find(v,head);}
+        node *find(T v,node *rt)
+        {
+            if(rt==nullptr)return nullptr;
+            if(v==rt->v){
+                return rt;
+            }
+            if(v<rt->v)return find(v,rt->l);
+            return find(v,rt->r);
+        }
+        node * begin()
+        {
+            node *t=head;
+            while(t->l)t=t->l;
+            return t;
+        }
+        node *end()
+        {
+            return nullptr;
+        }
+        node *next(node* pre)
+        {
+            node *t;
+            if(pre->r){
+                t=pre-r;
+                while(t->l)t=t->l;
+                return t;
+            }
+            else{
+                t=pre;
+                while(t&&t->v<=pre->v) t=t->f;
+                return t;
+            }
+        } 
+        ~st()
+        {
+            free(head);
+        }
+        void clear()
+        {
+            free(head);
+        }
+    private:
+        st(const st&){}
+        
+        void free(node *rt){
+            if(rt==nullptr)return;
+            free(rt->l);
+            free(rt->r);
+            delete rt;
+        }
+    };
     //Linear Base
     template<int N>
     struct LBase{
@@ -213,7 +289,7 @@ namespace icpc{
     //Point subset
     struct Point{
         double x,y;
-        Point():x(0.),y(0.);
+        Point():x(0.),y(0.){};
         Point(double x,double y):x(x),y(y){}
 
     };
