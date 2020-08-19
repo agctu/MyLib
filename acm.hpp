@@ -114,80 +114,62 @@ namespace icpc{
     };
     //Tree Problem
     //self implemented set
-    template<class T>
-    struct st{
-        struct node{ node *l=0,*r=0,*f=0; T v=T(); };
-        node * head;
-        st():head(nullptr){}
+    template<class T,int MSZ>
+    struct set{
+        struct node{ int l=-1,r=-1,f=-1; T v=T(); };
+        int  head,sz;
+        node mem[MSZ];
+        set():head(-1),sz(0){}
         inline void insert(T v){insert(v,head);}
-        void insert(T v,node *&rt,node *f=0)
+        void insert(T v,int &rt,int f=-1)
         {
-            if(rt==nullptr){
-                rt=new node();
-                rt->v=v;
-                rt->f=f;
+            if(rt==-1){
+                rt=sz++; 
+                mem[rt]=node();
+                mem[rt].v=v;
+                mem[rt].f=f;
             }
-            else if(v<rt->v){
-                insert(v,rt->l,rt);
+            else if(v<mem[rt].v){
+                insert(v,mem[rt].l,rt);
             }
-            else if(v==rt->v){
+            else if(v==mem[rt].v){
                 return;
             }
             else{
-                insert(v,rt->r,rt);
+                insert(v,mem[rt].r,rt);
             }
         }
-        inline node *find(T v){return find(v,head);}
-        node *find(T v,node *rt)
+        inline int find(T v){return find(v,head);}
+        int find(T v,int rt)
         {
-            if(rt==nullptr)return nullptr;
-            if(v==rt->v){
+            if(rt==-1)return -1;
+            if(v==mem[rt].v){
                 return rt;
             }
-            if(v<rt->v)return find(v,rt->l);
-            return find(v,rt->r);
+            if(v<mem[rt].v)return find(v,mem[rt].l);
+            return find(v,mem[rt].r);
         }
-        node * begin()
+        inline int  begin() { int t=head; while(~mem[t].l)t=mem[t].l; return t; }
+        inline int end() { return -1; }
+        int next(int pre)
         {
-            node *t=head;
-            while(t->l)t=t->l;
-            return t;
-        }
-        node *end()
-        {
-            return nullptr;
-        }
-        node *next(node* pre)
-        {
-            node *t;
-            if(pre->r){
-                t=pre-r;
-                while(t->l)t=t->l;
+            int t;
+            if(~mem[pre].r){
+                t=mem[pre].r;
+                while(~mem[t].l)t=mem[t].l;
                 return t;
             }
             else{
                 t=pre;
-                while(t&&t->v<=pre->v) t=t->f;
+                while(~t&&mem[t].v<=mem[pre].v) t=mem[t].f;
                 return t;
             }
         } 
-        ~st()
-        {
-            free(head);
-        }
-        void clear()
-        {
-            free(head);
-        }
+        inline T operator[](int id) { return mem[id].v; }
+        inline void clear() { sz=0; head=-1; }
     private:
-        st(const st&){}
+        set(const set&){}
         
-        void free(node *rt){
-            if(rt==nullptr)return;
-            free(rt->l);
-            free(rt->r);
-            delete rt;
-        }
     };
     //Linear Base
     template<int N>
