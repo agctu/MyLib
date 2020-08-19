@@ -1,7 +1,8 @@
-#ifndef ACM_HPP
-#define ACM_HPP
+#ifndef ICPC_HPP
+#define ICPC_HPP 
 #include <cstdio>
-namespace acm{
+#include <cmath>
+namespace icpc{
     //just return what the default value using the default constructor of the type T
     template<class T> class Nul{
         template<class r>
@@ -112,6 +113,7 @@ namespace acm{
         }
     };
     //Tree Problem
+    //Linear Base
     template<int N>
     struct LBase{
         long long base[N+1];
@@ -141,7 +143,7 @@ namespace acm{
         {
             long long ret=0;
             for(int i=N;i>=0;--i){
-                if(ret^base[i]>ret)ret=ret^base[i];
+                if((ret^base[i])>ret)ret=ret^base[i];
             }
             return ret;
         }
@@ -201,5 +203,72 @@ namespace acm{
         private:
         MulInv(const MulInv&);
     };
+    //computional geometry
+    int sign(double x,double eps=1e-8)
+    {
+        if(fabs(x)<eps)return 0;
+        if(x>0)return 1;
+        return -1;
+    }
+    //Point subset
+    struct Point{
+        double x,y;
+        Point():x(0.),y(0.);
+        Point(double x,double y):x(x),y(y){}
+
+    };
+    Point operator+(const Point& a,const Point& b)
+    {
+        return Point(a.x+b.x,a.y+b.y);
+    }
+    Point operator-(const Point& a,const Point& b)
+    {
+        return Point(a.x-b.x,a.y-b.y);
+    }
+
+    //two components vector
+    struct Vec{
+        double x,y;
+        Vec():x(0.),y(0.){}
+        Vec(double x,double y):x(x),y(y){}
+
+        //get the length of the vector
+        double operator+()
+        {
+            return sqrt(x*x+y*y);
+        }        
+        Vec& operator+=(const Vec& a)
+        {
+            x+=a.x;
+            y+=a.y;
+            return *this;
+        }
+        Vec& operator-=(const Vec& a)
+        {
+            x-=a.x;
+            y-=a.y;
+            return *this;
+        }
+
+    };
+    
+    double operator*(const Vec& a,const Vec& b)
+    {
+        return a.x*b.x+a.y*b.y;
+    }
+    Vec operator+(const Vec& a,const Vec& b)
+    {
+        Vec ret(a);
+        ret+=b;
+        return ret;
+    }
+    Vec operator-(const Vec& a,const Vec& b)
+    {
+        Vec ret(a);
+        ret-=b;
+        return ret;
+    }
+    
+    
 }
 #endif
