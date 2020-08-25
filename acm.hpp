@@ -144,16 +144,18 @@ namespace icpc{
 	private:
 		inline long long lowbit(long long x){return x&(-x);}
 	};
+    template<class T,int sz>
 	struct SparseTable{
 		typedef T (*Add)(const T& a,const T& b);
 		T mem[sz+1][20];//ceil(log(1e6))==20;
+        int lg[sz+1];
 		Add add;
 		SparseTable(Add add):add(add){}
 		SparseTable(T *dt,int len,Add add):add(add)
 		{
 			build(dt,len);
 		}
-		build(T *dt,int len)
+		void build(T *dt,int len)
 		{
 			for(int i=0;i<len;++i){
 				mem[i][0]=dt[i];
@@ -164,13 +166,19 @@ namespace icpc{
 					mem[j][i]=add(mem[j][i-1],mem[j+(1<<i-1)][i-1]);
 				}
 			}
+            getlg();
 		}
 		T get(int l,int r)//exclusive
 		{
-			int lb=0;
-			while((1<<lb+1)<=r-l)++lb;
+			int lb=lg[r-l];
 			return add(mem[l][lb],mem[r-(1<<lb)][lb]);
 		}
+    private:
+        void getlg()
+        {
+            lg[1]=0;
+            for(int i=2;i<=sz;++i)lg[i]=lg[i/2]+1;
+        }
 	};
 //Tree Problem
     //self implemented set
