@@ -112,6 +112,38 @@ namespace icpc{
             }
         }
     };
+    //tree-like array or binary indexed tree
+	template<class T,int sz>
+	struct BinaryIndexedTree{
+		T mem[sz+1]={T()};
+		void build(T *s,int n)
+		{
+			--s;//s[0] is never accessed 
+			for(int i=1;i<=n;++i){
+				mem[i]+=s[i];
+				int f=lowbit(i)+i;
+				if(f<=sz)mem[f]+=mem[i];
+			}
+		}
+		void update(T v,int n)
+		{
+			while(n<=sz){
+				mem[n]+=v;
+				n+=lowbit(n);
+			}
+		}
+		T query(int n)
+		{
+			T ret=T();
+			while(n){
+				ret+=mem[n];
+				n-=lowbit(n);
+			}
+			return ret;
+		}
+	private:
+		inline long long lowbit(long long x){return x&(-x);}
+	};
     //Tree Problem
     //self implemented set
     template<class T,int MSZ>
