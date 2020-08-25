@@ -359,6 +359,37 @@ namespace icpc{
         return ret;
     }
     
-    
+	//n row m colomn matrix for matrix power series    
+	template<class T,int nr,int nc>
+	struct Mat{
+		typedef T(&Row)[nc];
+		typedef const T(&CRow)[nc];
+		T mem[nr][nc];
+		ll mod;
+		Mat(ll mod=1e9+7):mod(mod){}
+		inline CRow operator[](int x)const{ return mem[x]; }
+		inline Row operator[](int x){ return mem[x]; }
+		void print()
+		{
+			for(int i=0;i<nr;++i)
+				for(int j=0;j<nc;++j)
+					cout<<mem[i][j]<<(j==nc-1?'\n':' ');
+		}
+	};
+	template<class T,int lr,int m,int rc>
+	Mat<T,lr,rc> operator*(const Mat<T,lr,m>& a,const Mat<T,m,rc>& b)
+	{
+		Mat<T,lr,rc> ret;
+		ret.mod=a.mod;//or b.mod?
+		for(int i=0;i<lr;++i){
+			for(int j=0;j<rc;++j){
+				ret[i][j]=0;
+				for(int k=0;k<m;++k){
+					ret[i][j]=(ret[i][j]+a[i][k]*b[k][j]%ret.mod)%ret.mod;
+				}
+			}
+		}
+		return ret;
+	}
 }
 #endif
