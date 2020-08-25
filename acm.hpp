@@ -144,7 +144,35 @@ namespace icpc{
 	private:
 		inline long long lowbit(long long x){return x&(-x);}
 	};
-    //Tree Problem
+	struct SparseTable{
+		typedef T (*Add)(const T& a,const T& b);
+		T mem[sz+1][20];//ceil(log(1e6))==20;
+		Add add;
+		SparseTable(Add add):add(add){}
+		SparseTable(T *dt,int len,Add add):add(add)
+		{
+			build(dt,len);
+		}
+		build(T *dt,int len)
+		{
+			for(int i=0;i<len;++i){
+				mem[i][0]=dt[i];
+			}
+			for(int i=1;i<19;++i){
+				for(int j=0;j<len;++j){
+					if(j+(1<<i-1)>=sz)break;
+					mem[j][i]=add(mem[j][i-1],mem[j+(1<<i-1)][i-1]);
+				}
+			}
+		}
+		T get(int l,int r)//exclusive
+		{
+			int lb=0;
+			while((1<<lb+1)<=r-l)++lb;
+			return add(mem[l][lb],mem[r-(1<<lb)][lb]);
+		}
+	};
+//Tree Problem
     //self implemented set
     template<class T,int MSZ>
     struct set{
@@ -238,7 +266,7 @@ namespace icpc{
             return ret;
         }
     };
-    //Number Theory
+//Number Theory
     template<class T>
     T gcd(T a,T b)
     {
@@ -256,7 +284,7 @@ namespace icpc{
         y=y-a/b*x;
         return ret;
     }
-    //N max index 
+    //N : max index 
     template<int N,int MOD> class MulInv{
         int *inv;
         public:
@@ -293,7 +321,7 @@ namespace icpc{
         private:
         MulInv(const MulInv&);
     };
-    //computional geometry
+//computional geometry
     int sign(double x,double eps=1e-8)
     {
         if(fabs(x)<eps)return 0;
