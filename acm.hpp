@@ -396,13 +396,14 @@ namespace icpc{
     }
     
 	//n row m colomn matrix for matrix power series    
-	template<class T,int nr,int nc>
+	template<class T>
 	struct Mat{
-		typedef T(&Row)[nc];
-		typedef const T(&CRow)[nc];
-		T mem[nr][nc];
-		ll mod;
-		Mat(ll mod=1e9+7):mod(mod){}
+		const static int sz=100;
+		typedef T (&Row) [sz];
+		typedef const T (&CRow) [sz];
+		int mem[sz][sz],nr,nc;
+		long long mod;
+		Mat(int nr,int nc,long long mod=1e9):nr(nr),nc(nc),mod(mod){}
 		inline CRow operator[](int x)const{ return mem[x]; }
 		inline Row operator[](int x){ return mem[x]; }
 		void print()
@@ -412,15 +413,14 @@ namespace icpc{
 					cout<<mem[i][j]<<(j==nc-1?'\n':' ');
 		}
 	};
-	template<class T,int lr,int m,int rc>
-	Mat<T,lr,rc> operator*(const Mat<T,lr,m>& a,const Mat<T,m,rc>& b)
+	template<class T>
+	Mat<T> operator*(const Mat<T>& a,const Mat<T>& b)
 	{
-		Mat<T,lr,rc> ret;
-		ret.mod=a.mod;//or b.mod?
-		for(int i=0;i<lr;++i){
-			for(int j=0;j<rc;++j){
+		Mat<T> ret(a.nr,b.nc,a.mod);//or b.mod?
+		for(int i=0;i<ret.nr;++i){
+			for(int j=0;j<ret.nc;++j){
 				ret[i][j]=0;
-				for(int k=0;k<m;++k){
+				for(int k=0;k<a.nc;++k){
 					ret[i][j]=(ret[i][j]+a[i][k]*b[k][j]%ret.mod)%ret.mod;
 				}
 			}
