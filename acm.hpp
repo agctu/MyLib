@@ -324,6 +324,175 @@ namespace icpc{
         set(const set&){}
         
     };
+    //Splay Tree self balanced tree
+    template<class T,int sz>
+    struct SplayTree{
+        struct Node{
+            int f,ch[2],cnt,size;
+            T val;
+            Node(){}
+            Node(int f,T val,int cnt,int size):f(f),val(val),cnt(cnt),size(size)
+            {
+                ch[0]=ch[1]=0;
+            }
+
+        };
+        int root=0,len=0;
+        Node mem[sz];
+        SplayTree()
+        {
+            mem[0]=Node(0,0,0,0);//avoid error ocurs when maintain a node which has a child 0.
+        }
+        void rotate(int rt)
+        {
+            Node& nd=mem[rt],& fa=mem[nd.f];
+            int tp=r(rt),ftp=r(nd.f),frt=nd.f,srt=nd.ch[tp^1],grt=fa.f;
+            fa.ch[tp]=srt,nd.ch[tp^1]=frt;
+            nd.f=grt,fa.f=rt;
+            mem[srt].f=frt;
+            if(grt==0)root=rt;
+            else mem[grt].ch[ftp]=rt;
+            maintain(frt),maintain(rt);
+        }
+        void insert(T v)
+        {
+            int f=0,cur=root;
+            while(cur!=0&&v!=mem[cur].val) ++mem[cur].size/*if not here,splay will do the job too ? */,f=cur,cur=mem[cur].ch[v>mem[cur].val];
+            if(cur==0){
+                Node& nd=mem[++len];
+                cur=len;
+                nd=Node(f,v,1,1);
+                if(f==0) root=len;
+                else mem[f].ch[v>mem[f].val]=len;
+            }
+            else{
+                ++mem[cur].size,++mem[cur].cnt;
+            }
+            splay(cur);
+        }
+        int rank(T v)
+        {
+            int ret=0,cur=root;
+            while(cur){
+                if(v>mem[cur].val) ret+=mem[mem[cur].ch[0]].size+mem[cur].cnt,cur=mem[cur].ch[1];
+                else if(v<mem[cur].val)cur=mem[cur].ch[0];
+                else{
+                    ret+=mem[mem[cur].ch[0]].size;
+                    splay(cur);
+                    break;
+                }
+            }
+            return ret+1;
+        }
+        T kth(int n)
+        {
+            int cur=root;
+            while(cur){
+                if(n>mem[mem[cur].ch[0]].size+mem[cur].cnt){
+                    n-=mem[mem[cur].ch[0]].size+mem[cur].cnt;
+                    cur=mem[cur].ch[1];
+                }
+                else if(n<=mem[mem[cur].ch[0]].size){
+                    cur=mem[cur].ch[0];
+                }
+                else{
+                    splay(cur);
+                    return mem[cur].val;
+                }
+            }
+            cerr<<"I think you call this with a wrong index"<<endl;
+            return T();
+        }
+        T pre(T v)
+        {
+            int cur;
+            insert(v);
+            cur=mem[root].ch[0];
+            if(!cur){
+                cerr<<"No pre for v"<<endl;
+                return T();
+            }
+            while(mem[cur].ch[1])cur=mem[cur].ch[1];
+            erase(v);
+            splay(cur);
+            return mem[cur].val;
+        }
+        T next(T v)
+        {
+            int cur;
+            insert(v);
+            cur=mem[root].ch[1];
+            if(!cur){
+                cerr<<"No next for v"<<endl;
+                return T();
+            }
+            while(mem[cur].ch[0])cur=mem[cur].ch[0];
+            erase(v);
+            splay(cur);
+            return mem[cur].val;
+        }
+        void erase(T v)
+        {
+            rank(v);
+            Node& nd=mem[root];
+            --nd.cnt,--nd.size;
+            if(!nd.cnt){
+                if(!nd.ch[0]&&!nd.ch[1]) root=0;
+                else if(nd.ch[0]&&nd.ch[1]){
+                    root=nd.ch[0];
+                    mem[nd.ch[0]].f=0;
+                    kth(mem[nd.ch[0]].size);//or pre(nd.val) I think, No nd not in the left subtree now!
+                    mem[root].ch[1]=nd.ch[1];
+                    mem[nd.ch[1]].f=root;
+                    maintain(root);
+                }
+                else{
+                    root=nd.ch[0]?nd.ch[0]:nd.ch[1];
+                    mem[root].f=0;
+                }
+
+            }
+        }
+        bool check(int rt)
+        {
+            if(rt==0)
+                return true;
+            return check(mem[rt].ch[0])&&check(mem[rt].ch[1])&&mem[mem[rt].ch[0]].size+mem[mem[rt].ch[1]].size+mem[rt].cnt==mem[rt].size;
+        }
+        void print()
+        {
+            int siz,cur;
+            queue<int> q;
+            q.push(root);
+            while(!q.empty()){
+                siz=q.size();
+                for(int i=0;i<siz;++i){
+                    Node& nd=mem[q.front()];
+                    q.pop();
+                    cerr<<'('<<nd.val<<','<<((&nd-mem))<<','<<nd.cnt<<','<<nd.size<<')'<<"    ";
+                    if(nd.ch[0])q.push(nd.ch[0]);
+                    if(nd.ch[1])q.push(nd.ch[1]);
+                }
+                cerr<<endl;
+            }
+            cerr<<"------------------------------------------"<<endl;
+        }
+        void splay(int rt)
+        {
+            Node& nd=mem[rt];
+            while(nd.f!=0){
+                if(mem[nd.f].f!=0)rotate(nd.f);
+                rotate(rt);
+            }
+        }
+        void maintain(int rt)//maintain the size field of mem[rt]
+        {
+            Node& nd=mem[rt];
+            nd.size=mem[nd.ch[0]].size+mem[nd.ch[1]].size+nd.cnt;
+        }
+        //I don't want to use this anyway.Too dizzy. But now I think I'm wrong.
+        inline bool r(int rt){ return mem[mem[rt].f].ch[1]==rt; }
+    };
     //Linear Base
     template<int N>
     struct LBase{
