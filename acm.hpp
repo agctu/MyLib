@@ -112,6 +112,91 @@ namespace icpc{
             }
         }
     };
+	//use add mul to operator dt, ot is replaced by dt.
+	//dt has default constructor and has the method merge
+	//st is the size type int , long or long long.
+	template<class dt,class st=int>
+	class SegTree{
+		struct Node{
+			st l,r,m,lp,rp;
+			dt v;
+			dt lt;
+			Node(st l,st r):lp(-1),rp(-1),l(l),r(r),v(),lt(),m((l+r)/2){}
+			Node(){}
+		};
+		vector<Node> dat;
+	public:
+		SegTree(){}
+		template<class iterable>
+		SegTree(const iterable& src,st s,st e)
+		{
+			build(src,s,e);
+		}
+		template<class iterable>
+		void build(const iterable& src,st s,st e)//exclusive
+		{
+			dat.resize((e-s)*2-1);//avoid the address of data in vector changes which will cause the loss of the reference
+			st i=st();
+			build(s,e,src,i);
+		}
+		void update(st l,st r,dt v,st cur=0)
+		{
+			Node& cs=dat[cur];
+			if(l<=cs.l&&cs.r<=r){
+				cs.v=cs.v+mul(v,(cs.r-cs.l));
+				cs.lt=add(cs.lt,v);
+			}
+			else{
+				pushdown(cur);
+				if(l<cs.m) update(l,r,v,cs.lp);
+				if(r>cs.m) update(l,r,v,cs.rp);
+				cs.v=add(dat[cs.lp].v,dat[cs.rp].v);
+			}
+		}
+		dt query(st l,st r,st cur=0)//exclusive for r
+		{
+			Node& cs=dat[cur];
+			if(l<=cs.l&&cs.r<=r){
+				return cs.v;
+			}
+			else{
+				pushdown(cur);
+				return add((l<cs.m?query(l,r,cs.lp):dt()),(r>cs.m?query(l,r,cs.rp):dt()));
+			}
+		}
+		
+	private:
+		template<class iterable>
+		void build(st l,st r,const iterable& src,st& cur)/* (st l,st r,const iterable& src,st& cur) */
+		{
+			Node& cs=dat[cur++];
+			cs=Node(l,r);
+			if(r-l>1){
+				cs.lp=cur;
+				build(cs.l,cs.m,src,cur);
+				cs.rp=cur;
+				build(cs.m,cs.r,src,cur);
+				cs.v=add(dat[cs.lp].v,dat[cs.rp].v);
+			}
+			else{
+				cs.v=src[l];
+			}
+		}
+		void pushdown(st cur)
+		{
+			Node& cs=dat[cur];
+			if(cs.lt==dt()||cs.r-cs.l<=1)return;
+			else{
+				Node& ls=dat[cs.lp],& rs=dat[cs.rp];
+				ls.v=add(ls.v,mul(cs.lt,(ls.r-ls.l)));
+				ls.lt=add(ls.lt,cs.lt);
+				rs.v=add(rs.v,mul(cs.lt,(rs.r-rs.l)));
+				rs.lt=add(rs.lt,cs.lt);
+				cs.lt=dt();
+			}
+		}
+	};
+
     //tree-like array or binary indexed tree
 	template<class T,int sz>
 	struct BinaryIndexedTree{
@@ -398,12 +483,12 @@ namespace icpc{
 	//n row m colomn matrix for matrix power series    
 	template<class T>
 	struct Mat{
-		const static int sz=100;
-		typedef T (&Row) [sz];
-		typedef const T (&CRow) [sz];
-		int mem[sz][sz],nr,nc;
+		typedef vector<T>& Row;
+		typedef const vector<T>& Row;;
+		int nr,nc;
+		vector<vector<T>>mem;
 		long long mod;
-		Mat(int nr,int nc,long long mod=1e9):nr(nr),nc(nc),mod(mod){}
+		Mat(int nr,int nc,long long mod=1e9):nr(nr),nc(nc),mod(mod),mem(nr,Row(nc,T())){}
 		inline CRow operator[](int x)const{ return mem[x]; }
 		inline Row operator[](int x){ return mem[x]; }
 		void print()
