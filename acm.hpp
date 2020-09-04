@@ -324,172 +324,104 @@ namespace icpc{
 		
 	};
 	//Splay Tree self balanced tree
-	template<class T,int sz>
+	// this version only inner operation, and use ch[0][0] as the root;
+	// please definite this in the global scope
+	// all arguments should be the inner addr of the node
+	template<class T, int sz>
 	struct SplayTree{
-		struct Node{
-			int f,ch[2],cnt,size;
-			T val;
-			Node(){}
-			Node(int f,T val,int cnt,int size):f(f),val(val),cnt(cnt),size(size)
-			{
-				ch[0]=ch[1]=0;
-			}
-		};
-		int root=0,len=0;
-		Node mem[sz];
+		T v[sz];
+		int f[sz],ch[sz][2],cnt[sz],siz[sz],& root=ch[sp][0],len=2;
+		bool rv[sz];
+		const int sp=0,ninf=1,inf=2;
 		SplayTree()
-		{
-			mem[0]=Node(0,0,0,0);//avoid error ocurs when maintain a node which has a child 0.
+		{ 
+			f[sp]=-1,f[ninf]=sp,f[inf]=ninf;
+			ch[sp][0]=ninf,ch[sp][1]=0,ch[ninf][0]=0,ch[ninf][1]=inf,ch[inf][0]=ch[inf][1]=0;
+			cnt[sp]=cnt[ninf]=cnt[inf]=0,siz[sp]=siz[ninf]=siz[inf]=0;
+			//define you inf and ninf here for compare.
 		}
-		void rotate(int rt)
+		//if the interface insert or delete increase or decrease the cnt, REMEMBER to maintain
+		int adjacent(int cur,int dire)//return the inner addr may return inf or ninf. dire -1 or 1
 		{
-			Node& nd=mem[rt],& fa=mem[nd.f];
-			int tp=r(rt),ftp=r(nd.f),frt=nd.f,srt=nd.ch[tp^1],grt=fa.f;
-			fa.ch[tp]=srt,nd.ch[tp^1]=frt;
-			nd.f=grt,fa.f=rt;
-			mem[srt].f=frt;
-			if(grt==0)root=rt;
-			else mem[grt].ch[ftp]=rt;
-			maintain(frt),maintain(rt);
-		}
-		void insert(T v)
-		{
-			int f=0,cur=root;
-			while(cur!=0&&v!=mem[cur].val) ++mem[cur].size/*if not here,splay will do the job too ? */,f=cur,cur=mem[cur].ch[v>mem[cur].val];
-			if(cur==0){
-				Node& nd=mem[++len];
-				cur=len;
-				nd=Node(f,v,1,1);
-				if(f==0) root=len;
-				else mem[f].ch[v>mem[f].val]=len;
-			}
-			else{
-				++mem[cur].size,++mem[cur].cnt;
-			}
+			assert(dire==-1||dire==1);
+			dire=max(dire,0);//conver to son type.
+			assert(dire&&cur!=2||!dire&&cur!=1);
 			splay(cur);
+			cur=ch[cur][dire];
+			while(ch[cur][dire^1])cur=ch[cur][dire^1];
+			return cur;
 		}
-		int rank(T v)
+		int rank(int cur)//use inner addr
 		{
-			int ret=0,cur=root;
-			while(cur){
-				if(v>mem[cur].val) ret+=mem[mem[cur].ch[0]].size+mem[cur].cnt,cur=mem[cur].ch[1];
-				else if(v<mem[cur].val)cur=mem[cur].ch[0];
-				else{
-					ret+=mem[mem[cur].ch[0]].size;
-					splay(cur);
-					break;
-				}
-			}
-			if(mem[root].val!=v)cerr<<v<<" is not in the tree"<<endl;
-			return ret+1;
+			assert(siz[0]==0);
+			splay(cur);
+			return	siz[ch[cur][0]]+1;
 		}
-		T kth(int n)
+		void erase(int cur)//no release and clear code for the node here, only erase it from the tree.
 		{
-			int cur=root,nn=n;
-			while(cur){
-				if(n>mem[mem[cur].ch[0]].size+mem[cur].cnt){
-					n-=mem[mem[cur].ch[0]].size+mem[cur].cnt;
-					cur=mem[cur].ch[1];
-				}
-				else if(n<=mem[mem[cur].ch[0]].size){
-					cur=mem[cur].ch[0];
-				}
-				else{
-					splay(cur);
-					return mem[cur].val;
-				}
-			}
-			cerr<<"I think you call this with a wrong index: "<<nn<<endl;
-			return T();
+			int pr=adjacent(cur,-1),nx=next(cur,1);
+			splay(nx),splay(pr,nx);
+			ch[pr][1]=0;
+			maintain(pr),maintain(nx);
 		}
-		T pre(T v)
+		void insert(int cur,int nx=0)//no new node code here, only insert it.
 		{
-			int cur=root,pr=0;
-			while(cur){
-				if(mem[cur].val>=v)cur=mem[cur].ch[0];
-				else pr=cur,cur=mem[cur].ch[1];
-			}
-			if(pr==0){
-				cerr<<"No previous for v="<<v<<endl;
-				return T();
-			}
-			splay(pr);
-			return mem[pr].val;
+			int pr=next(nx,false);
+			splay(nx),splay(pr,nx);
+			ch[pr][1]=cur,f[cur]=pr;
+			maintain(pr),maintain(nx);
 		}
-		T next(T v)
+
+		int kth(int k)//return inner addr
 		{
-			int cur=root,pr=0;
-			while(cur){
-				if(mem[cur].val<=v)cur=mem[cur].ch[1];
-				else pr=cur,cur=mem[cur].ch[0];
+			assert(siz[0]==0);
+			int cur=root;
+			while(k<=siz[ch[cur][0]]&&cur!=ninf||k>siz[cur]-siz[ch[cur][1]]&&cur!=inf){
+				if(k<=siz[ch[cur][0]])cur=ch[cur][0];
+				else k-=siz[cur]-siz[ch[cur][1]],cur=ch[cur][1];
 			}
-			if(pr==0){
-				cerr<<"No next for v="<<v<<endl;
-				return T();
-			}
-			splay(pr);
-			return mem[pr].val;
+			return cur;
 		}
-		void erase(T v)
+		void rotate(int cur)
 		{
-			rank(v);
-			Node& nd=mem[root];
-			--nd.cnt,--nd.size;
-			if(!nd.cnt){
-				if(!nd.ch[0]&&!nd.ch[1]) root=0;
-				else if(nd.ch[0]&&nd.ch[1]){
-					root=nd.ch[0];
-					mem[nd.ch[0]].f=0;
-					kth(mem[nd.ch[0]].size);//or pre(nd.val) I think, No nd not in the left subtree now!
-					mem[root].ch[1]=nd.ch[1];
-					mem[nd.ch[1]].f=root;
-					maintain(root);
-				}
-				else{
-					root=nd.ch[0]?nd.ch[0]:nd.ch[1];
-					mem[root].f=0;
-				}
+			assert(cur!=0&&f[cur]!=0);
+			int fa=f[cur],gr=f[fa],so=ch[cur][r(cur)^1],rc=r(cur),rf=r(fa);
+			ch[cur][rc^1]=fa,ch[fa][rc]=so,ch[gr][rf]=cur;
+			f[cur]=gr,f[fa]=cur,f[so]=fa;//the f[0] may changed here but I think it doesn't matter.
+			maintain(fa),maintain(cur);
+		}
+		void splay(int cur,int tg=0)//rotate the node cur to the children of tg(default root).
+		{
+			assert(cur>0&&cur!=tg);//we don't check if tg is one of the ancestors of cur.
+			while(f[cur]!=tg){
+				assert(cur>0&&f[cur]>0);
+				if(f[f[cur]]!=tg)rotate(r(cur)==r(f[cur])?f[cur]:cur);
+				rotate(cur);
 			}
 		}
-		bool check(int rt)
+		void maintain(int cur)
 		{
-			if(rt==0)
-				return true;
-			return check(mem[rt].ch[0])&&check(mem[rt].ch[1])&&mem[mem[rt].ch[0]].size+mem[mem[rt].ch[1]].size+mem[rt].cnt==mem[rt].size;
+			assert(cur!=0&&siz[0]==0);//the siz[0] should always be 0, or this make an error
+			siz[cur]=cnt[cur]+siz[ch[cur][0]]+siz[ch[cur][1]];
 		}
-		void print()
+		bool r(int cur)
 		{
-			int siz,cur;
-			queue<int> q;
-			q.push(root);
-			while(!q.empty()){
-				siz=q.size();
-				for(int i=0;i<siz;++i){
-					Node& nd=mem[q.front()];
-					q.pop();
-					cerr<<'('<<nd.val<<','<<((&nd-mem))<<','<<nd.cnt<<','<<nd.size<<')'<<"	";
-					if(nd.ch[0])q.push(nd.ch[0]);
-					if(nd.ch[1])q.push(nd.ch[1]);
-				}
-				cerr<<endl;
-			}
-			cerr<<"------------------------------------------"<<endl;
+			assert(cur!=0);//f[cur]==0 is permitted.
+			return ch[f[cur]][1]==cur;
 		}
-		void splay(int rt)
-		{
-			Node& nd=mem[rt];
-			while(nd.f!=0){
-				if(mem[nd.f].f!=0)rotate(r(rt)==r(nd.f)?nd.f:rt);
-				rotate(rt);
-			}
-		}
-		void maintain(int rt)//maintain the size field of mem[rt]
-		{
-			Node& nd=mem[rt];
-			nd.size=mem[nd.ch[0]].size+mem[nd.ch[1]].size+nd.cnt;
-		}
-		//I don't want to use this anyway.Too dizzy. But now I think I'm wrong.
-		inline bool r(int rt){ return mem[mem[rt].f].ch[1]==rt; }
+	//	void pushdown(int cur)
+	//	{
+	//		assert(cur!=sp&&cur!=ninf&&cur!=inf);
+	//		if(!rv[cur])return;
+	//		rv[cur]=false,rv[ch[cur][0]]^=1,rv[ch[cur][1]]^=1;
+	//		swap(ch[cur][0],ch[cur][1]);
+	//	}
+	//	void reverse(int l,int r)//to use this add pushdown in the function you need to use in the same file.
+	//	{
+	//		l=adjacent(l,-1),r=adjacent(r,1);
+	//		splay(r),splay(l,r);
+	//		rv[ch[l][1]]^=1;
+	//	}
 	};
 	//Linear Base
 	template<int N>
