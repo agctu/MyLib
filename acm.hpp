@@ -679,5 +679,64 @@ namespace icpc{
 		}
 		return ret;
 	}
+//flow
+	//maximum flow
+	struct Dinic{
+		struct edge{
+			int t,c,f;//to,capacity,from
+		};
+		int siz;
+		vector<edge>es;
+		vector<int>dis,vis,curi;//distance,from,to,visited,current i
+		vector<vector<int>>ver;//vertex edge relationship.
+		int s,t,mxflow=0;//start,target
+		Dinic(int siz,int st,int tg):siz(siz),s(st),t(tg){
+			dis.resize(siz+1);
+			vis.resize(siz+1);
+			curi.resize(siz+1);
+			ver.resize(siz+1);
+		}
+		bool bfs(int tag){//find the distance from the target for every node.
+			dis[s]=0;
+			vis[s]=tag;
+			queue<int>q;
+			q.push(s);
+			while(!q.empty()){
+				int cur=q.front();
+				q.pop();
+				for(auto i:ver[cur]){
+					edge& e=es[i];
+					if(vis[e.t]<tag&&e.c>e.f){//if not visited and the capacity remains, then next node belongs to next layer.
+						vis[e.t]=tag;
+						dis[e.t]=dis[cur]+1;
+						q.push(e.t);
+					}
+				}
+			}
+			return vis[t]==tag;//if no more flow reach target, the whole process end.
+		}
+		int dfs(int cur,int f){//current, flow.
+			if(cur==t)return f;//if the branch reach the target,then the branch end and all the flow is accepted by the target.
+			int tmp,ret=0;
+			for(int& i=curi[cur];f&&i<ver[cur].size();++i){//avoid to use the previous edge.
+				edge& ce=es[ver[cur][i]];
+				tmp=dfs(ce.t,min(f,ce.c-ce.f));//the flow pass through the edge is the minimum between remaining flow and the remaining capacity of the edge. And see how much flow reach the target.
+				f-=tmp,ret+=tmp,ce.f+=tmp,es[ver[cur][i]^1].f-=tmp;//reverse edge minus the flow.
+			}
+			return ret;
+		}
+		void addEdge(int a,int b,int c){//add an edge from a to b.
+			ver[a].push_back(es.size());
+			es.push_back({b,c,0});
+			//virtual edge.
+			ver[b].push_back(es.size());
+			es.push_back({a,0,0});
+		}
+		void operator()(){
+			for(int i=1;bfs(i);++i){
+				curi=vector<int>(siz+1),mxflow+=dfs(s,1e9/*infinity*/);
+			}
+		}
+	};
 }
 #endif
