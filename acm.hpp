@@ -196,6 +196,38 @@ namespace icpc{
 			}
 		}
 	};
+	//binary-heap
+	template<class T,int sz,class CMP>
+	struct Heap{
+		T mem[sz+1];
+		const CMP _cmp=CMP();
+		int siz=0;
+		inline void clear() { siz=0; }
+		void push(T x){
+			mem[++siz]=x;
+			adjustUp(siz);
+		}
+		inline bool empty() { return siz==0; }
+		inline T top(){ return mem[1]; }
+		void pop(){
+			mem[1]=mem[siz--];
+			adjustDown(1);
+		}
+	private:
+		void adjustUp(int p){
+			while(!cmp(p/2,p))swap(mem[p],mem[p/2]),p/=2;
+		}
+		void adjustDown(int p){
+			int np;
+			while(!cmp(p,np=cmp(p*2,p*2+1)?p*2:p*2+1))swap(mem[p],mem[np]),p=np;
+		}
+		bool cmp(int l,int r){
+			if(l<1||r>siz)return true;
+			if(l>siz||r<1)return false;
+			return _cmp(mem[l],mem[r]);
+		}
+	};
+			
 	//tree-like array or binary indexed tree
 	template<class T,int sz>
 	struct BinaryIndexedTree{
@@ -359,19 +391,18 @@ namespace icpc{
 		}
 		void erase(int cur)//no release and clear code for the node here, only erase it from the tree.
 		{
-			int pr=adjacent(cur,-1),nx=next(cur,1);
+			int pr=adjacent(cur,-1),nx=adjacent(cur,1);
 			splay(nx),splay(pr,nx);
 			ch[pr][1]=0;
 			maintain(pr),maintain(nx);
 		}
 		void insert(int cur,int nx=0)//no new node code here, only insert it.
 		{
-			int pr=next(nx,false);
+			int pr=adjacent(nx,-1);
 			splay(nx),splay(pr,nx);
 			ch[pr][1]=cur,f[cur]=pr;
 			maintain(pr),maintain(nx);
 		}
-
 		int kth(int k)//return inner addr
 		{
 			assert(siz[0]==0);
@@ -411,8 +442,8 @@ namespace icpc{
 		}
 	//	void pushdown(int cur)
 	//	{
-	//		assert(cur!=sp&&cur!=ninf&&cur!=inf);
 	//		if(!rv[cur])return;
+	//		assert(cur!=sp&&cur!=ninf&&cur!=inf);
 	//		rv[cur]=false,rv[ch[cur][0]]^=1,rv[ch[cur][1]]^=1;
 	//		swap(ch[cur][0],ch[cur][1]);
 	//	}
@@ -540,10 +571,14 @@ namespace icpc{
 		Vec():x(0.),y(0.){}
 		Vec(double x,double y):x(x),y(y){}
 		//get the length of the vector
-		double operator+()
+		double len()
 		{
 			return sqrt(x*x+y*y);
 		}		
+		double len2()
+		{
+			return x*x+y*y;
+		}
 		Vec& operator+=(const Vec& a)
 		{
 			x+=a.x;
@@ -556,24 +591,61 @@ namespace icpc{
 			y-=a.y;
 			return *this;
 		}
+		friend double operator^(const Vec& a,const Vec& b)//x multiply multiply
+		{
+			return a.x*b.y-b.x*a.y;
+		}
+		friend double operator*(const Vec& a,const Vec& b)
+		{
+			return a.x*b.x+a.y*b.y;
+		}
+		friend Vec operator+(const Vec& a,const Vec& b)
+		{
+			Vec ret(a);
+			ret+=b;
+			return ret;
+		}
+		friend Vec operator-(const Vec& a,const Vec& b)
+		{
+			Vec ret(a);
+			ret-=b;
+			return ret;
+		}
+		double angle()const
+		{
+			return atan2(y,x);//(-pi,pi]
+		}
+		Vec e()
+		{
+			return Vec(x/len(),y/len());
+		}
+		double distance(const Vec& a,const Vec& b)
+		{
+			return (a-b).len();
+		}
+		void rotate(double agl)//(-pi,pi] Please use the value.
+		{
+			double x=this->x*cos(agl)-this->y*sin(agl),y=this->x*sin(agl)+this->y*cos(agl);
+			this->x=x,this->y=y;
+		}
+
+	};
+	struct Line{
+		Vec dir;//direction
+		Point pnt;//a point to specify the position.
+		Line(const Vec& v,Point& p):dir(v),pnt(p){}
+		int relation(Point p)//return -1 when the point is on the right of the line, return 1 when the point is on the left of the line, return 0 when the point is just on the line.
+		{
+			Vec t(p.x-pnt.x,p.y-pnt.y);
+			return sign(dir*t);
+		}
+		double distance(const Point& p)
+		{
+			Vec t(p.x-pnt.x,p.y-pnt.y);
+			return fabs(dir^t)/dir.len();//dir ^ t == dir.len() * t.len() * sin(dir,t)
+		}
 	};
 	
-	double operator*(const Vec& a,const Vec& b)
-	{
-		return a.x*b.x+a.y*b.y;
-	}
-	Vec operator+(const Vec& a,const Vec& b)
-	{
-		Vec ret(a);
-		ret+=b;
-		return ret;
-	}
-	Vec operator-(const Vec& a,const Vec& b)
-	{
-		Vec ret(a);
-		ret-=b;
-		return ret;
-	}
 	
 	//n row m colomn matrix for matrix power series	
 	template<class T>
