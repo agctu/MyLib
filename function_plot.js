@@ -66,7 +66,8 @@ function FuncPlot(plotId,width,height,precision,xscale=width/10,yscale=height/10
         }
         //console.log(this.lastPoint[0]+" "+y-this.lastPoint[1]);
         this.lastPoint=[x,y];
-        this.plot.draw();
+        //if no move and no cursor, then no draw.
+        if(this.down||this.plot.cursorOn) this.plot.draw();
         return true;
     };
     this.canvas=this.graph.getContext("2d");
@@ -79,6 +80,10 @@ function FuncPlot(plotId,width,height,precision,xscale=width/10,yscale=height/10
     this.scaleY=yscale;
     this.funcs=[];
     this.pointsets=[];
+    //configurations and their default values.
+    this.gridOn=false;
+    this.axisOn=true;
+    this.cursorOn=false;
 }
 FuncPlot.prototype={
     constructor:FuncPlot,
@@ -114,18 +119,18 @@ FuncPlot.prototype={
     },
     draw:function(){
         this.clear();
-        this.drawAxis();
+        if(this.axisOn)this.drawAxis();
         for(let i=0;i<this.funcs.length;++i){
             this.drawFunc(this.funcs[i]);
         }
         for(let i=0;i<this.pointsets.length;++i){
             this.drawPoints(this.pointsets[i]);
         }
-        if(this.graph.in)this.drawMouse();
+        if(this.cursorOn&&this.graph.in)this.drawCursor();
     },
     //draw function(analog signals)
     //too frequent to call this for mouse draw, I can't come up with a optimizing method right now.
-    drawMouse:function(){
+    drawCursor:function(){
         //console.log("draw mouse");
         var x=this.graph.lastPoint[0],y=this.graph.lastPoint[1];
         //vertical
@@ -171,6 +176,7 @@ FuncPlot.prototype={
         //draw the grid.
         ;
     },
+    //FIXME The numbers of X axis and Y axis is in a constant range, but when the width or height of the FuncPlot is set to a relative small value, some terrible happens. Just that all the number seems to get in one, and you can hardly read them Xp.
     drawAxis:function(){
         this.canvas.font="#f00";
         //draw X axis and Y axis.
