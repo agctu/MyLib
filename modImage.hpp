@@ -434,7 +434,7 @@ namespace mine {
 				count = bsize;
 			}
 			for (int i = 0; i < bsize; i++)
-				memccpy(data, start, sizeof(char), count);
+				_memccpy(data, start, sizeof(char), count);
 		}
 		bitmap& reverse() {
 			;
