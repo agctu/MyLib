@@ -34,6 +34,24 @@ namespace icpc{
 		}
 		return ans;
 	}
+	//permutation and combination.
+	//fill array a of len with the permutation n offset from the beginning.
+	void permutation(int *a,int len,long long n){
+		long long pn=1;
+		set<int> st;
+		int t;
+		for(int i=1;i<len;++i)pn*=i;
+		n%=pn*len;
+		for(int i=1;i<=len;++i)st.insert(i);
+		for(int i=0;i<len-1;++i){
+			t=n/pn,n%=pn,pn/=len-1-i;	
+			auto iter=st.begin();
+			while(t--)++iter;
+			a[i]=*iter;
+			st.erase(iter);
+		}
+		a[len-1]=*st.begin();
+	}
 	//dt has default constructor and has the method merge
 	//ot has default constructor and it can be add to it self as well as to dt
 	//st is the size type int , long or long long.
