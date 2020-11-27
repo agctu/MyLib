@@ -7,6 +7,12 @@ function clamp(x,low,high){
 }
 //draw line using the canvas coord.
 function drawLine(canv,x1,y1,x2,y2){
+    for(let i=1;i<=4;++i){
+        if(arguments[i].constructor!=Number){
+            console.error("In drawLine "+arguments[i]+" is not number");
+            break;
+        }
+    }
     //FIXME
     canv.beginPath();
     canv.moveTo(x1,y1);
@@ -14,13 +20,22 @@ function drawLine(canv,x1,y1,x2,y2){
     canv.stroke();
 }
 function drawPoint(canv,x,y,size=1){
+    for(let i=1;i<=2;++i){
+        if(arguments[i].constructor!=Number){
+            console.error("In drawPoint "+arguments[i]+" is not number");
+            break;
+        }
+    }
     canv.beginPath();
     canv.arc(x,y,size,0,2*Math.PI);
     canv.fill();
 }
 //constructor
 function FuncPlot(plotId,width,height,precision,xscale=width/10,yscale=height/10,mx=width/2,my=height/2){
-    this.graph=document.getElementById(plotId);
+    if(plotId.constructor==String) this.graph=document.getElementById(plotId);
+    //when the plotId is from another window, then they will never equal.
+    //else if(plotId.constructor==HTMLCanvasElement) this.graph=plotId;
+    else this.graph=plotId;
     this.graph.plot=this;
     this.graph.width=width;
     this.graph.height=height;
@@ -80,10 +95,12 @@ function FuncPlot(plotId,width,height,precision,xscale=width/10,yscale=height/10
     this.scaleY=yscale;
     this.funcs=[];
     this.pointsets=[];
+    this.drawables=[];
     //configurations and their default values.
     this.gridOn=false;
     this.axisOn=true;
     this.cursorOn=false;
+    this.lineColors=[];
 }
 FuncPlot.prototype={
     constructor:FuncPlot,
@@ -107,6 +124,11 @@ FuncPlot.prototype={
         this.pointsets.push(ps);
         this.draw();
     },
+    //for drawables which has draw function implemented themselves.
+    addDrawable(dra){
+        this.drawables.push(dra);
+        this.draw();
+    },
     setFunc:function(func){
         this.funcs[0]=func;
         this.draw();
@@ -117,16 +139,30 @@ FuncPlot.prototype={
     clearPointset:function(){
         this.pointsets.splice(0,this.pointsets.length);
     },
+    pushLineColor:function(clr){
+        this.lineColors.push(this.canvas.strokeStyle);
+        this.canvas.strokeStyle=clr;
+    },
+    popLineColor:function(){
+        this.canvas.strokeStyle=this.lineColors.pop();
+    },
     draw:function(){
         this.clear();
         if(this.axisOn)this.drawAxis();
+        this.pushLineColor("red");
         for(let i=0;i<this.funcs.length;++i){
             this.drawFunc(this.funcs[i]);
         }
+        this.popLineColor();
         for(let i=0;i<this.pointsets.length;++i){
             this.drawPoints(this.pointsets[i]);
         }
+        for(let i=0;i<this.drawables.length;++i){
+            this.drawables[i].draw(this);
+        }
+        this.pushLineColor("green");
         if(this.cursorOn&&this.graph.in)this.drawCursor();
+        this.popLineColor();
     },
     //draw function(analog signals)
     //too frequent to call this for mouse draw, I can't come up with a optimizing method right now.
@@ -207,6 +243,19 @@ FuncPlot.prototype={
             this.canvas.fillText(-y.toString().slice(0,5),clamp(this.midX,0,this.width-20/*hard code here*/),y*this.scaleY+this.midY);
         }
 
+    },
+    //affine transform, use real coordinate as parameters.
+    drawLine:function(x1,y1,x2,y2){
+        drawLine(this.canvas,
+            x1*this.scaleX+this.midX,
+            -y1*this.scaleY+this.midY,
+            x2*this.scaleX+this.midX,
+            -y2*this.scaleY+this.midY);
+    },
+    drawPoint:function(x,y){
+        drawPoint(this.canvas,
+            x*this.scaleX+this.midX,
+            -y*this.scaleY+this.midY);
     }
 }
 
