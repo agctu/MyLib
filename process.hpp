@@ -1,6 +1,5 @@
 #ifndef PROCESS_HPP
 #define PROCESS_HPP
-#endif
 #include <Windows.h>
 #include <string>
 namespace mine {
@@ -102,9 +101,10 @@ namespace mine {
 		{
 			DWORD dwExitCode;
 			GetExitCodeProcess(pi.hProcess, &dwExitCode);
-			return dwExitCode = STILL_ACTIVE;
+			return dwExitCode == STILL_ACTIVE;
 		}
 	private:
 		process(const process&) {}
 	};
 }
+#endif
