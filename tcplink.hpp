@@ -6,9 +6,9 @@
 #include <log.hpp>
 #pragma comment(lib,"ws2_32.lib")
 
-using namespace std;
 logger mlog(cout);
 namespace mine {
+	using namespace std;
 	string geterror()
 	{
 		int wsaerror = WSAGetLastError();
@@ -203,13 +203,15 @@ namespace mine {
 			mlog << lend;
 			return retcode;
 		}
-		string recv(int len=0)
+		string recv(int len=-1)
 		{
-			if (len == 0)
+			assert(len >= -1);
+			if (len == -1)
 				len = 1024;
-			
-			char *data = new char[len]();
-			memset(data, 0, len);
+			if (len == 0)
+				return 0;
+			char *data = new char[len+1]();
+			memset(data, 0, len+1);
 			/*if (::recv(sock, data,len, 0))
 				return string();*/
 			int state;
@@ -229,11 +231,14 @@ namespace mine {
 			delete[] data;
 			return string(rets);
 		}
-		int recv(char *data,int len = 0)
+		int recv(char *data,int len = -1)
 		{
-			if (len == 0)
+			assert(len >= -1);
+			if (len == -1)
 				len = 1024;
-
+			if (len == 0)
+				return 0;
+			
 			memset(data, 0, len + 1);
 			int state;
 			state = ::recv(sock, data, len, 0);
@@ -250,6 +255,22 @@ namespace mine {
 			string rets = data;
 			mlog << lend;
 			return state;
+		}
+		//not tested
+		int set_timeout_S(int mili) {
+			int retcode = 0;
+			retcode=setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&mili, sizeof(int));
+			if (retcode != 0)
+				showerror();
+			return retcode;
+		}
+		//not tested
+		int set_timeout_R(int mili) {
+			int retcode = 0;
+			retcode = setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&mili, sizeof(int));
+			if (retcode != 0)
+				showerror();
+			return retcode;
 		}
 		void close()
 		{
