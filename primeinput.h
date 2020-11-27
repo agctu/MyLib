@@ -8,6 +8,8 @@ using namespace std;
 namespace mine {
 	enum act{up,down};
 	enum button{l,m,r};
+	const int pixelwidth = 1920;
+	const int pixelheight = 1080;
 	void key(act a, int vkc)
 	{
 		INPUT input = { 0 };
@@ -45,10 +47,8 @@ namespace mine {
 		}
 		SendInput(1, &input, sizeof(INPUT));
 	}
-	void wheel(act a, int n)
-	{
-		if (a == down)
-			n = -n;
+
+	void wheel(int n) {
 		n *= WHEEL_DELTA;
 		INPUT input = { 0 };
 		input.type = INPUT_MOUSE;
@@ -57,18 +57,39 @@ namespace mine {
 		input.mi.mouseData = n;
 		SendInput(1, &input, sizeof(INPUT));
 	}
+
+	void wheel(act a, int n)
+	{
+		if (a == down)
+			n = -n;
+		wheel(n);
+	}
+
 	void move(int x, int y)
 	{
-		int scwidth = 1920;
-		int scheight = 1080;
+		
+		bool absolute = true;
+		int scwidth = pixelwidth;
+		int scheight = pixelheight;
 		INPUT input = { 0 };
 		input.type = INPUT_MOUSE;
 		input.mi.time = 0;
-		input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
-		input.mi.dx = 0xffff * x / 1920;
-		input.mi.dy = 0xffff * y / 1080;
+		if (absolute) {
+			input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+			input.mi.dx = 0xffff * x / pixelwidth;
+			input.mi.dy = 0xffff * y / pixelheight;
+		}
+		else {
+			int inchwidth = GetSystemMetrics(SM_CXSCREEN);
+			int inchheight = GetSystemMetrics(SM_CYSCREEN);
+			input.mi.dwFlags = MOUSEEVENTF_MOVE;
+			input.mi.dx = (float)x*pixelwidth/inchwidth;
+			input.mi.dy = (float)y*pixelwidth / inchwidth;
+		}
+		
 		SendInput(1, &input, sizeof(INPUT));
 	}
+	
 	void input(wstring s)
 	{
 
