@@ -19,7 +19,7 @@ namespace mine{
         cmd_parser(int argc,char **argv):nnamed(0),nunnamed(0)
         {
             //ensure the name is not parse as an unnamed argument.
-            ++argv;
+            ++argv,--argc;
 
             for(int i=0;i<argc;++i){
                 char *curarg=argv[i];
