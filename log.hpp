@@ -4,9 +4,12 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <assert.h>
+#include <mutex>
+
 using namespace std;
 enum State { label, text ,lend};
-	
+mutex stacklock;
 class logger {
 	bool isopen = true;
 	ofstream fo;
@@ -72,12 +75,21 @@ public:
 			return *this;
 		switch (s) {
 		case lend:
+			stacklock.lock();
+			if (labelstack.empty()) {
+				logl("ERROR");
+				log("The labelstack is empty");
+				logl("ERROR");
+				return *this;
+			}
 			--indenttime;
 
 			*this << endl;
+			
 			o << "</" << labelstack.back() << ">" ;
 			*this << endl;
 			labelstack.pop_back();
+			stacklock.unlock();
 			break;
 		default:
 			state = s;
@@ -89,8 +101,11 @@ public:
 	{
 		if (!isopen)
 			return;
+		stacklock.lock();
+		//here is one of the points where multy thread is not safe,but i don't know why , 
 		if (!labelstack.empty() && labelstack.back() == l) {
 			labelstack.pop_back();
+			
 			--indenttime;
 			*this << endl;
 			o << "</" << l << ">";
@@ -102,7 +117,7 @@ public:
 			*this << endl;
 			labelstack.push_back(l);
 		}
-
+		stacklock.unlock();
 	}
 	void close()
 	{
