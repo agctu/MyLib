@@ -136,6 +136,7 @@ namespace mine {
 		}
 		bool getframe(void* receiver,bool& timeout,int width,int height)
 		{
+			
 			if (width > getwidth())
 				return false;
 			if (height > getheight())
@@ -244,6 +245,17 @@ namespace mine {
 				d3dcontext->Release();
 				d3dcontext = nullptr;
 			}
+		}
+		bool _init()
+		{
+			bool state = true;
+			state = initdevice();
+			if (!state)
+				return false;
+			state = initdupl();
+			if (!state)
+				return false;
+			return true;
 		}
 	};
 }
