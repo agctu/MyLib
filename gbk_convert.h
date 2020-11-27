@@ -26,7 +26,7 @@ namespace mine {
 	}
 	string ec_utf8(wstring ws)
 	{
-		wstring_convert<codecvt_gbk>utf8_converter;
+		wstring_convert<codecvt_utf8<wchar_t>>utf8_converter;
 		return utf8_converter.to_bytes(ws);
 	}
 }
