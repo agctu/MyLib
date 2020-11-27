@@ -232,6 +232,22 @@ public:
 		assert(type_flag == JSON_ARRAY);
 		data.a->pop_back();
 	}
+	void clear()
+	{
+		assert(type_flag == JSON_ARRAY || type_flag == JSON_OBJECT);
+		if(type_flag == JSON_ARRAY)data.a->clear();
+		else if(type_flag == JSON_OBJECT)data.o->clear();
+	}
+	void erase(size_t index)
+	{
+		assert(type_flag == JSON_ARRAY);
+		data.a->erase(data.a->begin()+index);
+	}
+	void erase(string key)
+	{
+		assert(type_flag == JSON_OBJECT);
+		data.o->erase(key);
+	}
 	//convertor and type
 	string type()
 	{
@@ -291,7 +307,8 @@ public:
 	}
 	operator string()
 	{
-		return tostring();
+		assert(type_flag == JSON_STRING);
+		return *data.s;
 	}
 	//io
 	void write(string path)
