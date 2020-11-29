@@ -24,13 +24,13 @@ class Trackbar{
 		elem.min=this.min; elem.max=this.max;
 		elem.style.width=width+"px";
 		this.div.append(elem);
-		elem.onmousedown=function(){
+		elem.onmousedown=elem.ontouchstart=function(){
 			this.clicked=true;
 		}
-		elem.onmouseup=elem.onmouseout=function(){
+		elem.onmouseup=elem.onmouseout=elem.ontouchcancel=elem.ontouchend=function(){
 			this.clicked=false;
 		}
-		elem.onmousemove=function(){
+		elem.onmousemove=elem.ontouchmove=function(){
 			if(this.clicked){
 				this.tcb.update();
 			}
