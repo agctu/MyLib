@@ -30,6 +30,17 @@ function drawPoint(canv,x,y,size=1){
     canv.arc(x,y,size,0,2*Math.PI);
     canv.fill();
 }
+function drawCircle(canv,x,y,radius){
+    for(let i=1;i<arguments.length;++i){
+        if(arguments[i].constructor!=Number){
+            console.error("In drawCircle "+arguments[i]+" is not number");
+            break;
+        }
+    }
+    canv.beginPath();
+    canv.arc(x,y,radius,0,2*Math.PI);
+    canv.stroke();
+}
 //constructor
 function FuncPlot(plotId,width,height,precision,xscale=width/10,yscale=height/10,mx=width/2,my=height/2){
     if(plotId.constructor==String) this.graph=document.getElementById(plotId);
@@ -244,7 +255,7 @@ FuncPlot.prototype={
         }
 
     },
-    //affine transform, use real coordinate as parameters.
+    //affine transform, use real coordinate as parameters.for outer call.
     drawLine:function(x1,y1,x2,y2){
         drawLine(this.canvas,
             x1*this.scaleX+this.midX,
