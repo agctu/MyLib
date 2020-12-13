@@ -263,10 +263,10 @@ FuncPlot.prototype={
             x2*this.scaleX+this.midX,
             -y2*this.scaleY+this.midY);
     },
-    drawPoint:function(x,y){
+    drawPoint:function(x,y,size=1){
         drawPoint(this.canvas,
             x*this.scaleX+this.midX,
-            -y*this.scaleY+this.midY);
+            -y*this.scaleY+this.midY,size);
     }
 }
 
