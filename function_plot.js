@@ -267,6 +267,18 @@ FuncPlot.prototype={
         drawPoint(this.canvas,
             x*this.scaleX+this.midX,
             -y*this.scaleY+this.midY,size);
+    },
+    sc2in(p){//convert coordinate from screen to inner
+        return [
+            (p[0]-this.midX)/this.scaleX,
+            (p[1]-this.midY)/-this.scaleY
+        ];
+    },
+    in2sc(p){//convert coordinate from inner to screen
+        return [
+            p[0]*this.scaleX+this.midX,
+            -p[1]*this.scaleY+this.midY
+        ];
     }
 }
 
