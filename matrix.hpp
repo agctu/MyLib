@@ -47,6 +47,23 @@ namespace nm{
 			for(int i=0;i<siz;++i) ret[i][i]=1;
 			return ret;
 		}
+        static _Matrix fromBytes(const string& data){
+            if(data.size()<sizeof(int)*2)throw "data.size should be at least sizeof(int)*2!";
+            int nrow,ncol;
+            const char *p=&data[0];
+            nrow=*reinterpret_cast<const int*>(p);
+            p+=sizeof(int);
+            ncol=*reinterpret_cast<const int*>(p);
+            p+=sizeof(int);
+            if(data.size()!=sizeof(T)*nrow*ncol+sizeof(int)*2)throw "wrong data size!";
+            //FIXME conciser method to do this?such as read data to a vector,then call one of the constructor
+            _Matrix ret(nrow,ncol);
+            for(int i=0;i<nrow;++i)for(int j=0;j<ncol;++j){
+                ret[i][j]=*reinterpret_cast<const T*>(p);
+                p+=sizeof(T);
+            }
+            return ret;
+        }
 		int nrow,ncol;
 		vector<T>mem,cids,rids;
 		_Matrix():nrow(0),ncol(0){
@@ -114,6 +131,7 @@ namespace nm{
 			 	ret[i][j]=j<a.ncol?a[i][j]:b[i][j-a.ncol]; 
 			return ret;
 		}
+        void tranverse();//some day,this should be implemented and some code should be reconstructed.
 		_Matrix transpose(){
 			_Matrix ret(ncol,nrow);
 			for(int i=0;i<ret.nrow;++i)for(int j=0;j<ret.ncol;++j)
@@ -152,6 +170,23 @@ namespace nm{
 			}
 			return ret;
 		}
+        //if some members of T is pointer,then error occurs
+        string toBytes(){
+            string ret;
+            ret.resize(sizeof(int)*2+sizeof(T)*nrow*ncol);
+            //unsafe{
+            char *p=&ret[0];
+            *reinterpret_cast<int*>(p)=nrow;
+            p+=sizeof(int);
+            *reinterpret_cast<int*>(p)=ncol;
+            p+=sizeof(int);
+            for(int i=0;i<nrow;++i)for(int j=0;j<ncol;++j){
+                *reinterpret_cast<T*>(p)=(*this)[i][j];
+                p+=sizeof(T);
+            }
+            //}//unsafe
+            return ret;
+        }
 		T det(){
 			using std::cout;
 			using std::endl;
