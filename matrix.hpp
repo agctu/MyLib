@@ -76,7 +76,6 @@ namespace nm{
 			init();
 		}
 		friend _Matrix dot(const _Matrix& a, const _Matrix& b){
-			assert(a.ncol==b.nrow);
 			int len=a.ncol;
 			_Matrix ret(a.nrow,b.ncol);
 			for(int i=0;i<ret.nrow;++i){
