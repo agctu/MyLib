@@ -15,6 +15,8 @@ namespace nm{
 	using std::string;
 	using std::swap;
 	using std::mt19937;
+    using std::random_device;
+    using std::normal_distribution;
     using std::max;
 	//two dimension matrix
 	template<typename T> struct _Matrix{
@@ -42,11 +44,15 @@ namespace nm{
 			//Row(const _Matrix& mt,int cid):cids(cid),mt(mt){}
 		//};
 		static _Matrix random(int nrow,int ncol,bool alter=false);
+        static _Matrix randn(int nrow,int ncol,bool alter=false);
 		static _Matrix eye(int siz){
 			_Matrix ret(siz,siz);
 			for(int i=0;i<siz;++i) ret[i][i]=1;
 			return ret;
 		}
+        static int getSize(int nrow,int ncol) {
+            return nrow*ncol*sizeof(T)+sizeof(int)*2;
+        }
         static _Matrix fromBytes(const string& data){
             if(data.size()<sizeof(int)*2)throw "data.size should be at least sizeof(int)*2!";
             int nrow,ncol;
@@ -183,7 +189,7 @@ namespace nm{
         //if some members of T is pointer,then error occurs
         string toBytes(){
             string ret;
-            ret.resize(sizeof(int)*2+sizeof(T)*nrow*ncol);
+            ret.resize(_Matrix::getSize(nrow,ncol));
             //unsafe{
             char *p=&ret[0];
             *reinterpret_cast<int*>(p)=nrow;
@@ -271,10 +277,18 @@ namespace nm{
 	};
 	using Matrix=_Matrix<double>;
 	template<> Matrix Matrix::random(int nrow,int ncol,bool alter){
-		mt19937 rand(alter?time(0):0);
+		mt19937 rand(alter?random_device()():0);
 		Matrix ret(nrow,ncol);
 		for(int i=0;i<nrow;++i)for(int j=0;j<ncol;++j)
 			ret[i][j]=rand()/1e9;
+		return ret;
+	}
+	template<> Matrix Matrix::randn(int nrow,int ncol,bool alter){
+		mt19937 rand(alter?random_device()():0);
+		Matrix ret(nrow,ncol);
+        normal_distribution<> normal{0,1};
+		for(int i=0;i<nrow;++i)for(int j=0;j<ncol;++j)
+			ret[i][j]=normal(rand);
 		return ret;
 	}
 }//namespace nm
