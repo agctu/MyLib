@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <random>
 #include <ctime>
-namespace nm{
+namespace mine{
 	using std::vector;
 	using std::initializer_list;
 	using std::string;
@@ -291,6 +291,6 @@ namespace nm{
 			ret[i][j]=normal(rand);
 		return ret;
 	}
-}//namespace nm
+}//namespace mine
 
 # endif
