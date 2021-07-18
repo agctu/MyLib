@@ -129,7 +129,23 @@ namespace mine{
 			}
 			return ret;
 		}
+		friend _Matrix operator+(T a,const _Matrix& b){
+			_Matrix ret(b.nrow,b.ncol);
+			for(int i=0;i<ret.nrow;++i)for(int j=0;j<ret.ncol;++j){
+				ret[i][j]=a+b[i][j];
+			}
+			return ret;
+		}
+		friend _Matrix operator+(const _Matrix& a,T b){
+			return b+a;
+		}
 		friend _Matrix operator-(const _Matrix& a,const _Matrix& b){
+			return a+(-b);
+		}
+		friend _Matrix operator-(T a,const _Matrix& b){
+			return a+(-b);
+		}
+		friend _Matrix operator-(_Matrix& a,const T b){
 			return a+(-b);
 		}
 		_Matrix operator-()const{
